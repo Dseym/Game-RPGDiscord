@@ -1,216 +1,141 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
-client.login("NTY4Njk2MTUwNTg5MTc3ODY2.XLmeOA.GEnT6DY-SyYDSKDYQtcbRGK1Y5k");
+client.login("NTY4Njk2MTUwNTg5MTc3ODY2.Xbaaug.HeAOC7q3u6mwvVGlwhHZc5Wg1h0");
 fs = require("fs");
+workJSON = require("jsonFunc");
 
-var players = JSON.parse(fs.readFileSync("players.json")),
-	guild = JSON.parse(fs.readFileSync("guild.json")),
+var players = JSON.parse(fs.readFileSync("jsonFiles/players.json")),
+	guild = JSON.parse(fs.readFileSync("jsonFiles/guild.json")),
+	items = JSON.parse(fs.readFileSync("jsonFiles/items.json")),
 	timerr,
 	timerr2,
+	jsons = [players, guild, items],
 	start = true;
 
 setInterval(function(){
-	players = JSON.parse(fs.readFileSync("players.json"));
-	guild = JSON.parse(fs.readFileSync("guild.json"));
+	players = JSON.parse(fs.readFileSync("jsonFiles/players.json"));
+	guild = JSON.parse(fs.readFileSync("jsonFiles/guild.json"));
+	items = JSON.parse(fs.readFileSync("jsonFiles/items.json"));
+	jsons = [players, guild, items];
 }, 4900);
 
 
 client.on("message", (message) => {
-	console.log(message.author.presence.status);
-	if(players[message.author.username.toLowerCase()] != null) {
+	if(players[message.author.username.toLowerCase()] != null && message.guild != null) {
 		if(Number(players[message.author.username.toLowerCase()].hp) < Number(players[message.author.username.toLowerCase()].lvl)*50 && message.content.toLowerCase().length > 2) {
-			workJSON("edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", Math.ceil(message.content.length/5), "-", "-", "-", "-"]);
+			workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", Math.ceil(message.content.length/5), "-", "-", "-", "-"]);
 		}
 
 		if(start) {
 		    timerr2 = setInterval(function(){
-		    	workJSON("edit", "guild", message.guild.name, ["-", "-", -(2-Number(guild[players[message.author.username.toLowerCase()].guild].defence)*2), "-", "-", "-"]);
+		    	workJSON(jsons, "edit", "guild", message.guild.name, ["-", "-", -(2-Number(guild[players[message.author.username.toLowerCase()].guild].defence)*2), "-", "-", "-"]);
 		    	if(Number(guild[players[message.author.username.toLowerCase()].guild].hp) > Number(guild[players[message.author.username.toLowerCase()].guild].lvl*500)) {
-		    		workJSON("edit", "guild", message.guild.name, ["-", "-", -Number(guild[players[message.author.username.toLowerCase()].guild].hp)+Number(guild[players[message.author.username.toLowerCase()].guild].lvl)*500, "-", "-", "-"]);
+		    		workJSON(jsons, "edit", "guild", message.guild.name, ["-", "-", -Number(guild[players[message.author.username.toLowerCase()].guild].hp)+Number(guild[players[message.author.username.toLowerCase()].guild].lvl)*500, "-", "-", "-"]);
 		    	}
 		    }, 5000);
 		    start = false;
 		}
 
 		if(message.content.toLowerCase() == "!профиль") {
-			message.channel.send("Ваш ник - "+players[message.author.username.toLowerCase()].name+"\nВаш клан - "+players[message.author.username.toLowerCase()].guild+"\nМонет - "+chechBalance()+"\n\nЗдоровье - "+players[message.author.username.toLowerCase()].hp+"/"+Number(players[message.author.username.toLowerCase()].lvl)*50+"\nМана - "+players[message.author.username.toLowerCase()].mana+"\n\nУровень - "+players[message.author.username.toLowerCase()].lvl+"\nОпыт - "+players[message.author.username.toLowerCase()].xp+"/"+Number(players[message.author.username.toLowerCase()].lvl)*57);
+			message.author.sendMessage("Ваш ник - "+players[message.author.username.toLowerCase()].name+"\nВаш клан - "+players[message.author.username.toLowerCase()].guild+"\nМонет - "+chechBalance()+"\n\nЗдоровье - "+players[message.author.username.toLowerCase()].hp+"/"+Number(players[message.author.username.toLowerCase()].lvl)*50+"\nМана - "+players[message.author.username.toLowerCase()].mana+"\n\nУровень - "+players[message.author.username.toLowerCase()].lvl+"\nОпыт - "+players[message.author.username.toLowerCase()].xp+"/"+Number(players[message.author.username.toLowerCase()].lvl)*57);
 		} else if(message.content.toLowerCase() == "!клан") {
 			message.channel.send("Название клана - "+players[message.author.username.toLowerCase()].guild+"\nВладелец - "+guild[players[message.author.username.toLowerCase()].guild].own+"\nМонет - "+guild[players[message.author.username.toLowerCase()].guild].money+"\n\nЗдоровье - "+guild[players[message.author.username.toLowerCase()].guild].hp+"/"+Number(guild[players[message.author.username.toLowerCase()].guild].lvl)*500+"\n\nУровень - "+guild[players[message.author.username.toLowerCase()].guild].lvl+"\nОпыт - "+guild[players[message.author.username.toLowerCase()].guild].xp+"/"+Number(guild[players[message.author.username.toLowerCase()].guild].lvl)*327);
-		} else if(message.content.toLowerCase() == ">защищаю базу" && players[message.author.username.toLowerCase()].defence == "no") {
-			workJSON("edit", "guild", message.guild.name, ["-", "-", "-", "-", "-", 1]);
+		} else if(message.content.toLowerCase() == "/защита" && players[message.author.username.toLowerCase()].defence == "no") {
+			workJSON(jsons, "edit", "guild", message.guild.name, ["-", "-", "-", "-", "-", 1]);
+			workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", "-", "-", "yes"]);
 			timerr = setInterval(function(){
-				workJSON("edit", "players", message.author.username.toLowerCase(), [1, "-", "-", -3, 2, "-", "-", "yes"]);
+				var randItem = Math.floor(Math.random()*5);
+				if(randItem == 0) {
+					workJSON(jsons, "edit", "items", message.author.username.toLowerCase(), ["add", "железо"]);
+				} else if(randItem == 1) {
+					workJSON(jsons, "edit", "items", message.author.username.toLowerCase(), ["add", "дерево"]);
+				} else if(randItem == 2) {
+					workJSON(jsons, "edit", "items", message.author.username.toLowerCase(), ["add", "золото"]);
+				} else {
+					workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), [1, "-", "-", -3, 2, "-", "-", "yes"]);
+				}
 				
 				if(Number(players[message.author.username.toLowerCase()].xp) >= Number(players[message.author.username.toLowerCase()].lvl)*57) {
-					workJSON("edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", -Number(players[message.author.username.toLowerCase()].xp), 1, "-", "-"]);
+					workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", -Number(players[message.author.username.toLowerCase()].xp), 1, "-", "-"]);
 				}
 
 				if(Number(players[message.author.username.toLowerCase()].hp) < 2) {
-					workJSON("edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", "-", "-", "no"]);
-					workJSON("edit", "guild", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", -1]);
 					clearInterval(timerr);
+					workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", "-", "-", "no"]);
+					workJSON(jsons, "edit", "guild", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", -1]);
 				}
-			}, 5000);
-		} else if(message.content.toLowerCase() == ">заканчиваю защиту" && players[message.author.username.toLowerCase()].defence == "yes") {
-			workJSON("edit", "guild", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", -1]);
-			workJSON("edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", "-", "-", "no"]);
+			}, 5100);
+		} else if(message.content.toLowerCase() == "/закончить защиту" && players[message.author.username.toLowerCase()].defence == "yes") {
 			clearInterval(timerr);
+			setTimeout(function() {
+				workJSON(jsons, "edit", "guild", message.guild.name, ["-", "-", "-", "-", "-", -1]);
+				workJSON(jsons, "edit", "players", message.author.username.toLowerCase(), ["-", "-", "-", "-", "-", "-", "-", "no"]);
+			}, 300);
+		} else if(message.content.toLowerCase() == "!плавильня") {
+			message.author.sendMessage("Для создания предмета пишите сюда и используйте такую форму сообщения:\n>создать .предмет.(предметы для создания...)\nПример: >создать меч(железо, золото, дерево)");
+			message.author.sendMessage(":Предметов для создания: у каждого предмета:\nМеч = 3");
+		} else if(message.content.toLowerCase() == "!инвентарь") {
+			var inv = "",
+				nick = message.author.username.toLowerCase();
+			for(var i = 0; i < items[nick].length; i++) {
+				inv += "\n"+items[nick][i]+";";
+			}
+			message.author.sendMessage("Ваши вещи:"+inv);
+		}
+	} else if(players[message.author.username.toLowerCase()] != null && message.guild == null) {
+		if(message.content.toLowerCase().indexOf(">создать ") > -1) {
+			var item = message.content.toLowerCase().split(">создать ")[1].split("(")[0],
+				itemsForItem = message.content.toLowerCase().split("(")[1].split(")")[0],
+				nick = message.author.username.toLowerCase(),
+				itemsForRemove = [],
+				canCreate = true;
+			for(var i = 0; i < itemsForItem.split(", ").length; i++) {
+				var yes = true;
+				for(var ii = 0; ii < items[nick].length; ii++) {
+					if(items[nick][ii] == itemsForItem.split(", ")[i]) {
+						yes = false;
+						itemsForRemove.push(items[nick][ii]);
+					}
+				}
+				if(yes) {
+					message.channel.send("Предмета: "+itemsForItem.split(",")[i]+" - нету у Вас в инвентаре");
+					canCreate = false;
+					itemsForRemove = [];
+					break;
+				}
+			}
+			if(canCreate) {
+				for(var i = 0; i < itemsForRemove.length; i++) {
+					workJSON(jsons, "edit", "items", message.author.username.toLowerCase(), ["delete", itemsForRemove[i]]);
+				}
+				if(item == "меч" && itemsForItem.split(",").length == 3) {
+					workJSON(jsons, "edit", "items", message.author.username.toLowerCase(), ["add", item+"("+itemsForItem+")"]);
+					message.channel.send("Предмет: "+message.content.toLowerCase().split(">создать ")[1].split("(")[0]+" - успешно создан!");
+				} else {
+					message.channel.send("Предмета: "+item+" - не существует в игре!\nЛибо Вы ввели неверное количество :предметов для создания:");
+				}
+			}
 		}
 	}
+
 	if(message.content.toLowerCase() == "!начать") {
 		if(players[message.author.username.toLowerCase()] != null) {
 			message.channel.send("Вы уже в игре!\nНапишите: !помощь - для помощи");
 		} else {
-			workJSON("create", "players", message.author.username.toLowerCase(), []);
-			workJSON("create", "guild", message.guild.name, []);
+			workJSON(jsons, "create", "players", message.author.username.toLowerCase(), []);
+			workJSON(jsons, "create", "guild", message.guild.name, []);
+			workJSON(jsons, "create", "items", message.author.username.toLowerCase(), []);
 
 			message.channel.send("Вы вступили в игру!\nНапишите: !помощь - для помощи");
 		}
 	} else if(message.content.toLowerCase() == "!помощь") {
-		message.channel.send("Команды:\n!начать - вступить в игру\n!профиль - посмотреть свой профиль\n!клан - посмотреть свой клан");
+		message.channel.send("Команды:\n!начать - вступить в игру\n!профиль - посмотреть свой профиль\n!клан - посмотреть свой клан\n!плавильня - создать какой-либо предмет\n!инвентарь - посмотреть свой инвентарь\n!действия - помощь по действиям клана");
+	} else if(message.content.toLowerCase() == "!действия") {
+		message.channel.send("Действия с кланом:\n/защита - начать защиту клана\n/закончить защиту - закончить защиту клана");
 	}
 
 
 	function chechBalance() {
 		return players[message.author.username.toLowerCase()].money;
 	}
-
-	function workJSON(workIs, nameJSON, keyName, date) {
-		var obj = {};
-
-		if(workIs == "create") {
-			switch(nameJSON) {
-				case "players": obj[keyName] = {"money": 0, "guild": message.guild.name, "name": message.author.username, "hp": 50, "xp": 0, "lvl": 1, "mana": 10, "defence": "no", "crutch": "crutch"}; break;
-				case "guild": obj[keyName] = {"money": 0, "own": message.guild.owner.user.username+"#"+message.guild.owner.user.discriminator, "hp": 500, "xp": 0, "lvl": 1, "defence": 0, "crutch": "crutch"}; break;
-			}
-		} else if(workIs == "edit") {
-			switch(nameJSON) {
-				case "players": obj = players; playersJSON(); break;
-				case "guild": obj = guild; guildJSON(); break;
-			}
-
-			function playersJSON() {
-				for(var i = 0; i < date.length; i++) {
-					if(date[i] == "-") {
-						switch(i) {
-							case 0: date[0] = 0; break;
-							case 1: date[1] = players[keyName].guild; break;
-							case 2: date[2] = players[keyName].name; break;
-							case 3: date[3] = 0; break;
-							case 4: date[4] = 0; break;
-							case 5: date[5] = 0; break;
-							case 6: date[6] = 0; break;
-							case 7: date[7] = players[keyName].defence; break;
-						}
-					}
-				}
-				obj[keyName] = {"money": Number(obj[keyName].money)+date[0], "guild": date[1], "name": date[2], "hp": Number(obj[keyName].hp)+date[3], "xp": Number(obj[keyName].xp)+date[4], "lvl": Number(obj[keyName].lvl)+date[5], "mana": Number(obj[keyName].mana)+date[6], "defence": date[7], "crutch": "crutch"};
-			}
-			function guildJSON() {
-				for(var i = 0; i < date.length; i++) {
-					if(date[i] == "-") {
-						switch(i) {
-							case 0: date[0] = 0; break;
-							case 1: date[1] = guild[keyName].own; break;
-							case 2: date[2] = 0; break;
-							case 3: date[3] = 0; break;
-							case 4: date[4] = 0; break;
-							case 5: date[5] = 0; break;
-						}
-					}
-				}
-				obj[keyName] = {"money": Number(obj[keyName].money)+date[0], "own": date[1], "hp": Number(obj[keyName].hp)+date[2], "xp": Number(obj[keyName].xp)+date[3], "lvl": Number(obj[keyName].lvl)+date[4], "defence": Number(obj[keyName].defence)+date[5], "crutch": "crutch"};
-			}
-		}
-
-		fs.writeFile(nameJSON+".json", JSON.stringify(obj), function(err) {
-		    if(err) throw err;
-		    	console.log("Ключ - "+keyName+">>"+nameJSON+" - Успешно!");
-		    }
-		);
-	}
-
-
-	// if(message.author.username.toLowerCase() != "spaming") {
-	// 	if(!learn) {
-	// 		if(message.author.username == lastAut) {
-	// 			if(vidMess == "in") {
-	// 				messIn.push(message.content.toLowerCase());
-	// 				vidMess = "ex";
-	// 			} else {
-	// 				messEx.push(message.content.toLowerCase());
-	// 				vidMess = "in";
-	// 			}
-	// 			lastAut = message.author.username;
-	// 		} else if(Math.floor(Math.random() * 3) == 2) {
-	// 			if(vidMess == "in") {
-	// 				messIn.push(message.content.toLowerCase());
-	// 			} else {
-	// 				messEx.push(message.content.toLowerCase());
-	// 			}
-	// 		}
-
-	// 		for(i = 0; i < message.content.split(" ").length; i++) {
-	// 			verb = message.content.split(" ")[i].toLowerCase();
-	// 			if(verbs.indexOf(verb) == -1) {
-	// 				verbs.push(verb);
-	// 			}
-	// 		}
-	// 		fraz = message.content.toLowerCase()
-	// 		if(messIn.indexOf(fraz) != -1) {
-	// 			message.channel.send(messEx[messIn.indexOf(fraz)]);
-	// 		}
-	// 		if(fraz == "сохрани базу") {
-	// 			fs.writeFileSync("save.txt", verbs + " -|- " + messIn + " -|- " + messEx + " -|- " + lastAut + " -|- " + vidMess);
-	// 		}
-	// 		if(message.content == "сгенерируй числа") {
-	// 			var nums = [];
-	// 			for(i = 0; i < 51; i++) {
-	// 				nums.push(Math.floor(Math.random() * 101));
-	// 			}
-	// 			message.channel.send(nums.join(","));
-	// 		}
-	// 		if(message.content == "пожелей меня") {
-	// 			message.channel.send("не буду я тебя желеть не добрый ты человек! иди ты знаешь куда?!");
-	// 		}
-	// 		if(message.content.indexOf("я") > -1) {
-	// 			message.channel.send("последняя буква в алфавите!")
-	// 		}
-	// 		if(message.content == "как можно помочь тебе?") {
-	// 			message.channel.send("зайдите сюда и помайните немного мне) - https://donate-miner.000webhostapp.com/?nick=EnderWorld")
-	// 		}
-	// 	} else {
-	// 		if(learnn) {
-	// 			if(message.content == "да") {
-	// 				if(vidMess == "in") {
-	// 					messIn.push(verbb);
-	// 					vidMess = "ex";
-	// 				} else {
-	// 					messEx.push(verbb);
-	// 					vidMess = "in";
-	// 				}
-	// 				message.channel.send("круто!");
-	// 			} else if(message.content == "нет") {
-	// 				message.channel.send("ну ладно(");
-	// 			}
-	// 			learnn = false;
-	// 		}
-
-	// 		if(message.content == "придумай фразу") {
-	// 			verbb = verbs[Math.floor(Math.random() * (verbs.length + 1))] + " " + verbs[Math.floor(Math.random() * (verbs.length + 1))];
-	// 			message.channel.send(verbb);
-	// 			learnn = true;
-	// 			message.channel.send("пойдет?");
-	// 		}
-	// 	}
-	// }
-	// if(message.content == "смени режим") {
-	// 	if(learn) {
-	// 		learn = false;
-	// 		message.channel.send("режим общения");
-	// 	} else {
-	// 		learn = true;
-	// 		message.channel.send("режим обучения");
-	// 	}
-	// }
 });
